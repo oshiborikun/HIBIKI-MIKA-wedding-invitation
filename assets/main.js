@@ -65,51 +65,61 @@ const sukaBlockSrc = './assets/img/suka_block.png';
 });
 
 function leafHotJump() {
+  // すべてのインラインスタイルによるtransitionをリセットしGSAPで制御する！
   hibiki.src = jumpSrc;
   hibiki.style.width = '96px';
   hibiki.style.marginRight = '-6px';
-  hibiki.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
-  hibiki.style.transform = 'translateY(-35px)';
 
   block.src = sukaBlockSrc;
-  block.style.transition = 'transform 0.3s ease-out';
-  block.style.transform = 'translateY(-18px)';
 
   heart.classList.remove('is-spinning');
-  void heart.offsetWidth; // 
-  heart.style.opacity = '1';
-  heart.style.transition = 'bottom 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
-  heart.style.bottom = '60px';
+  void heart.offsetWidth;
   heart.classList.add('is-spinning');
 
-  setTimeout(() => {
-    hibiki.style.transition = 'transform 0.4s cubic-bezier(0.64, 0, 0.78, 0)';
-    hibiki.style.transform = 'translateY(0)';
+  const jumpTl = gsap.timeline();
 
-    block.style.transition = 'transform 0.4s ease-in';
-    block.style.transform = 'translateY(0)';
-
-    heart.style.transition = 'bottom 0.8s ease-out, opacity 0.5s ease-out 0.3s';
-    heart.style.bottom = '90px';
-    heart.style.opacity = '0';
-  }, 400);
-
-  setTimeout(() => {
-    hibiki.src = normalSrc;
-    hibiki.style.width = '90px';
-    hibiki.style.marginRight = '0';
-    block.src = mBlockSrc;
-  }, 850);
-
-  setTimeout(() => {
-    heart.style.transition = 'none';
-    heart.style.bottom = '10px';
-    heart.classList.remove('is-spinning');
-  }, 1700);
+  // ジャンプ上昇
+  jumpTl.to([hibiki, block], {
+    y: (i) => i === 0 ? -35 : -18,
+    duration: 0.4,
+    ease: "power2.out"
+  })
+  .to(heart, {
+    bottom: 60,
+    opacity: 1,
+    duration: 0.4,
+    ease: "power2.out"
+  }, 0)
+  // ジャンプ下降
+  .to([hibiki, block], {
+    y: 0,
+    duration: 0.4,
+    ease: "power2.in",
+    onComplete: () => {
+      hibiki.src = normalSrc;
+      hibiki.style.width = '90px';
+      hibiki.style.marginRight = '0';
+    }
+  }, "+=0.05")
+  // ハートのさらなる上昇と消去
+  .to(heart, {
+    bottom: 90,
+    opacity: 0,
+    duration: 0.6,
+    ease: "power1.out",
+    onComplete: () => {
+      block.src = mBlockSrc;
+      gsap.set(heart, { bottom: 10, clearProps: "opacity" });
+      heart.classList.remove('is-spinning');
+    }
+  }, "-=0.2");
 }
 
-leafHotJump();
-setInterval(leafHotJump, 4500);
+// 最初の実行を少し遅らせてリソース競合を避ける！
+setTimeout(() => {
+  leafHotJump();
+  setInterval(leafHotJump, 4000);
+}, 1000);
 
 
 /* gsap */
@@ -128,9 +138,7 @@ const textTl = gsap.timeline({
 paragraphs.forEach((p) => {
   const text = p.innerHTML;
   p.innerHTML = "";
-  
   const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
-  
   nodes.forEach(node => {
     if (node.nodeType === 3) {
       node.textContent.split("").forEach(char => {
@@ -144,9 +152,7 @@ paragraphs.forEach((p) => {
       p.appendChild(node.cloneNode(true));
     }
   });
-
   const chars = p.querySelectorAll("span");
-
   textTl.to(chars, {
     visibility: "visible",
     duration: 0,
@@ -157,7 +163,6 @@ paragraphs.forEach((p) => {
 
 /* power on */
 const slides = document.querySelectorAll(".flame-gba__slide");
-
 slides.forEach((slide) => {
   const slideTl = gsap.timeline({
     scrollTrigger: {
@@ -166,7 +171,6 @@ slides.forEach((slide) => {
       toggleActions: "play none none none"
     }
   });
-
   slideTl.to(slide, {
     scaleX: 1,
     duration: 0.2,
@@ -186,18 +190,13 @@ slides.forEach((slide) => {
 
 /* text animation2 */
 const rouletteChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 document.querySelectorAll(".event-wrap__content").forEach((el) => {
   const targetText = el.innerText;
-  
   gsap.set(el, { visibility: "hidden" });
-
   el.innerText = targetText.replace(/./g, () => 
     rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length))
   );
-
   let obj = { value: 0 };
-
   gsap.to(obj, {
     value: targetText.length,
     duration: 0.8,
@@ -232,15 +231,11 @@ const parallaxItems = [
   { selector: ".js-parallax01", y: -30, rotate: 45},
   { selector: ".js-parallax02", y: -70, rotate: -45}
 ];
-
 parallaxItems.forEach((item) => {
   const elements = document.querySelectorAll(item.selector);
-
   elements.forEach((el) => {
     gsap.fromTo(el, 
-      { yPercent: 0,
-        rotation: 0
-       }, 
+      { yPercent: 0, rotation: 0 }, 
       { 
         yPercent: item.y, 
         rotation: item.rotate,
