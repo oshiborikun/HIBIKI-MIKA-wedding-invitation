@@ -8,7 +8,7 @@ window.addEventListener('load', () => {
   const loadingText = document.querySelector('.loading-text');
   const startTime = Date.now();
 
-  //now loading...
+  // now loading...
   setTimeout(() => {
     loadingImg.style.opacity = '1';
   }, 100);
@@ -27,7 +27,7 @@ window.addEventListener('load', () => {
     dotIndex = (dotIndex + 1) % dots.length;
   }, 400);
 
-  //img fadein
+  // img fadein / loader fadein-out
   const hideLoader = () => {
     if (loader.style.display === 'none') return;
     clearInterval(dotInterval);
@@ -38,7 +38,6 @@ window.addEventListener('load', () => {
     }, 800);
   };
 
-  //loader fadein-out
   const forceShowTimeout = setTimeout(() => {
     hideLoader();
   }, 5000);
@@ -62,46 +61,38 @@ window.addEventListener('load', () => {
   const mBlockSrc = './assets/img/m_block.png';
   const sukaBlockSrc = './assets/img/suka_block.png';
 
+  // プリロード
   [jumpSrc, sukaBlockSrc].forEach(src => {
     const img = new Image();
     img.src = src;
   });
 
   function leafHotJump() {
-    if (document.hidden) return;
+    if (document.hidden) return; // バックグラウンドでの爆速化防止
 
-    // --- ここから修正 ---
-
-    // 1. まずトランジションを「なし」にして、地面（y:0）にいる状態をブラウザに確定させる
+    // 1. リセット（一度 top を 0 に戻して強制的に描画をリセット）
     hibiki.style.transition = 'none';
     block.style.transition = 'none';
     heart.style.transition = 'none';
-    hibiki.style.transform = 'translateY(0)';
-    block.style.transform = 'translateY(0)';
-    
-    // 強制再描画（これを入れないと、次のトランジション有効化とまとめて処理されてしまう）
+    hibiki.style.top = '0px';
+    block.style.top = '0px';
     void hibiki.offsetWidth; 
 
-    // 2. ブラウザが描画を更新する次のタイミング（数ミリ秒後）にジャンプ命令を出す
-    // requestAnimationFrameを使うことで、爆速バグを防ぎつつ滑らかに動かせる
+    // 2. 上昇アニメーション
     requestAnimationFrame(() => {
-      if (document.hidden) return; // 念のため再チェック
+      if (document.hidden) return;
 
-      // 画像切り替えと、ジャンプのための余白調整
       hibiki.src = jumpSrc;
       hibiki.style.width = '96px';
       hibiki.style.marginRight = '-6px';
+      // flex-endを無視するため translateY ではなく top を使用
+      hibiki.style.top = '-60px'; 
+      hibiki.style.transition = 'top 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
 
-      // 上昇アニメーションの適用（y:-60pxに設定）
-      hibiki.style.setProperty('transform', 'translateY(-60px)', 'important');
-      hibiki.style.transition = 'transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
-
-      // ブロックも連動して上げる
       block.src = sukaBlockSrc;
-      block.style.setProperty('transform', 'translateY(-20px)', 'important');
-      block.style.transition = 'transform 0.08s ease-out';
+      block.style.top = '-20px';
+      block.style.transition = 'top 0.08s ease-out';
 
-      // ハートの上昇
       heart.classList.remove('is-spinning');
       void heart.offsetWidth;
       heart.classList.add('is-spinning');
@@ -110,27 +101,24 @@ window.addEventListener('load', () => {
       heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
     });
 
-    // --- ここまで修正 ---
-
-    // 3. 落下処理（setTimeoutのタイミング等は元のまま）
+    // 3. 落下処理
     setTimeout(() => {
-      hibiki.style.setProperty('transform', 'translateY(0)', 'important');
-      hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
+      hibiki.style.top = '0px';
+      hibiki.style.transition = 'top 0.18s cubic-bezier(0.8, 0, 1, 1)';
 
-      block.style.setProperty('transform', 'translateY(0)', 'important');
-      block.style.transition = 'transform 0.15s ease-in';
+      block.style.top = '0px';
+      block.style.transition = 'top 0.15s ease-in';
 
-      // ハートは着地後、さらに上に消えていく動き
       heart.style.bottom = '110px';
       heart.style.transition = 'bottom 0.35s ease-out';
-    }, 110);
+    }, 120);
 
-    // 4. 着地後のソースリセット
+    // 4. 着地後のリセット
     setTimeout(() => {
       hibiki.src = normalSrc;
       hibiki.style.width = '90px';
       hibiki.style.marginRight = '0';
-    }, 260);
+    }, 300);
 
     // 5. ハート消去とブロック戻し
     setTimeout(() => {
@@ -143,16 +131,135 @@ window.addEventListener('load', () => {
       heart.style.transition = 'none';
       heart.style.bottom = '10px';
       heart.classList.remove('is-spinning');
-    }, 1250);
+    }, 1300);
   }
 
+  // ジャンプ開始とループ設定
   leafHotJump();
   setInterval(() => {
     if (!document.hidden) leafHotJump();
   }, 3000);
 
 
-  /* gsap */
-  // （ GSAP部分、Text Animation、PowerOn、ルーレット、パララックスは元のままのため割愛 ）
-  // ... (GSAP registration, Text animation tl, PowerOn slides.forEach, Text animation2 event-wrap__content.forEach, Parallax parallaxItems.forEach)
+  /* text animation */
+  const paragraphs = document.querySelectorAll(".message-text p");
+  paragraphs.forEach((p) => {
+    const text = p.innerHTML;
+    p.innerHTML = "";
+    const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
+    nodes.forEach(node => {
+      if (node.nodeType === 3) {
+        node.textContent.split("").forEach(char => {
+          const span = document.createElement("span");
+          span.textContent = char;
+          span.style.display = "inline-block";
+          span.style.visibility = "hidden";
+          p.appendChild(span);
+        });
+      } else {
+        p.appendChild(node.cloneNode(true));
+      }
+    });
+
+    const chars = p.querySelectorAll("span");
+    gsap.to(chars, {
+      visibility: "visible",
+      duration: 0,
+      stagger: 0.06,
+      scrollTrigger: {
+        trigger: p,
+        start: "top 80%",
+        toggleActions: "play none none none"
+      }
+    });
+  });
+
+
+  /* power on */
+  const slides = document.querySelectorAll(".flame-gba__slide");
+  slides.forEach((slide) => {
+    const tl_gba = gsap.timeline({
+      scrollTrigger: {
+        trigger: slide,
+        start: "top 80%",
+        toggleActions: "play none none none"
+      }
+    });
+    tl_gba.to(slide, {
+      scaleX: 1,
+      duration: 0.2,
+      ease: "power4.out"
+    })
+    .to(slide, {
+      scaleY: 1,
+      duration: 0.2,
+      ease: "power4.out"
+    })
+    .to(slide, {
+      backgroundColor: "transparent",
+      duration: 0.1
+    });
+  });
+
+
+  /* text animation2 */
+  const rouletteChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  document.querySelectorAll(".event-wrap__content").forEach((el) => {
+    const targetText = el.innerText;
+    gsap.set(el, { visibility: "hidden" });
+    let obj = { value: 0 };
+    gsap.to(obj, {
+      value: targetText.length,
+      duration: 0.8,
+      ease: "none",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 85%", 
+        toggleActions: "play none none none",
+        onEnter: () => gsap.set(el, { visibility: "visible" })
+      },
+      onUpdate: () => {
+        let result = "";
+        const progress = Math.floor(obj.value);
+        for (let i = 0; i < targetText.length; i++) {
+          if (i < progress) {
+            result += targetText[i];
+          } else {
+            result += rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
+          }
+        }
+        el.innerText = result;
+      },
+      onComplete: () => {
+        el.innerText = targetText;
+      }
+    });
+  });
+
+
+  /* parallax */
+  const parallaxItems = [
+    { selector: ".js-parallax01", y: -30, rotate: 45},
+    { selector: ".js-parallax02", y: -70, rotate: -45}
+  ];
+
+  parallaxItems.forEach((item) => {
+    const elements = document.querySelectorAll(item.selector);
+    elements.forEach((el) => {
+      gsap.fromTo(el, 
+        { yPercent: 0, rotation: 0 }, 
+        { 
+          yPercent: item.y, 
+          rotation: item.rotate,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top bottom", 
+            end: "bottom top",   
+            scrub: 2
+          }
+        }
+      );
+    });
+  });
 });
