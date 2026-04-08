@@ -72,4 +72,56 @@ function leafHotJump() {
 
   heart.classList.remove('is-spinning');
   void heart.offsetWidth;
-  heart.
+  heart.classList.add('is-spinning');
+
+  const jumpTl = gsap.timeline();
+
+  // 上昇
+  jumpTl.to([hibiki, block], {
+    y: (i) => i === 0 ? -35 : -18,
+    duration: 0.2,
+    ease: "power1.out"
+  })
+  .to(heart, {
+    bottom: 60,
+    opacity: 1,
+    duration: 0.2,
+    ease: "power1.out"
+  }, 0)
+  // 下降
+  .to([hibiki, block], {
+    y: 0,
+    duration: 0.2,
+    ease: "power1.in",
+    onComplete: () => {
+      hibiki.src = normalSrc;
+      hibiki.style.width = '90px';
+      hibiki.style.marginRight = '0';
+    }
+  }, "+=0.08")
+  // 消去
+  .to(heart, {
+    bottom: 90,
+    opacity: 0,
+    duration: 0.4,
+    ease: "power2.out",
+    onComplete: () => {
+      block.src = mBlockSrc;
+      gsap.set(heart, { bottom: 10, clearProps: "opacity" });
+      heart.classList.remove('is-spinning');
+    }
+  }, "-=0.15");
+}
+
+setTimeout(() => {
+  leafHotJump();
+  setInterval(leafHotJump, 3000);
+}, 500);
+
+
+/* gsap */
+gsap.registerPlugin(ScrollTrigger);
+
+/* text animation */
+const paragraphs = document.querySelectorAll(".message-text p");
+const tl = gsap.
