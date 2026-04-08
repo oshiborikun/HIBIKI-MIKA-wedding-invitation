@@ -68,23 +68,27 @@ window.addEventListener('load', () => {
   });
 
   function leafHotJump() {
-    // スマホのバックグラウンド時は実行しない（爆速化対策）
     if (document.hidden) return;
 
-    // 以前の CSS transition を一時的に無効化し、JSでの制御を優先させる
+    // 1. 命令が溜まって無視されないよう、一度すべてのスタイル・遷移をリセットして強制再描画させる
     hibiki.style.transition = 'none';
     block.style.transition = 'none';
     heart.style.transition = 'none';
+    hibiki.style.transform = 'translateY(0)';
+    block.style.transform = 'translateY(0)';
+    void hibiki.offsetWidth; // 強制再描画（ブラウザに現在の位置を認識させる）
 
+    // 2. 上昇アニメーションの適用
     hibiki.src = jumpSrc;
     hibiki.style.width = '96px';
     hibiki.style.marginRight = '-6px';
-    // yプロパティではなく、直接 transform を書き換えて高さを出す（-60pxなど調整可）
-    hibiki.style.transform = 'translateY(-60px)';
+    
+    // transformを直接上書き。!important相当の優先度を持たせるため
+    hibiki.style.setProperty('transform', 'translateY(-60px)', 'important');
     hibiki.style.transition = 'transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
 
     block.src = sukaBlockSrc;
-    block.style.transform = 'translateY(-20px)';
+    block.style.setProperty('transform', 'translateY(-20px)', 'important');
     block.style.transition = 'transform 0.08s ease-out';
 
     heart.classList.remove('is-spinning');
@@ -94,23 +98,26 @@ window.addEventListener('load', () => {
     heart.style.bottom = '80px';
     heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
 
+    // 3. 落下処理
     setTimeout(() => {
-      hibiki.style.transform = 'translateY(0)';
+      hibiki.style.setProperty('transform', 'translateY(0)', 'important');
       hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
 
-      block.style.transform = 'translateY(0)';
+      block.style.setProperty('transform', 'translateY(0)', 'important');
       block.style.transition = 'transform 0.15s ease-in';
 
       heart.style.bottom = '110px';
       heart.style.transition = 'bottom 0.35s ease-out';
     }, 110);
 
+    // 4. 着地後のソースリセット
     setTimeout(() => {
       hibiki.src = normalSrc;
       hibiki.style.width = '90px';
       hibiki.style.marginRight = '0';
     }, 260);
 
+    // 5. ハート消去とブロック戻し
     setTimeout(() => {
       heart.style.opacity = '0';
       heart.style.transition = 'opacity 0.2s ease-out';
@@ -124,17 +131,13 @@ window.addEventListener('load', () => {
     }, 1250);
   }
 
-  // 最初の実行
   leafHotJump();
-  // スマホで爆速になるのを防ぐため setInterval 内でも表示状態をチェック
   setInterval(() => {
     if (!document.hidden) leafHotJump();
   }, 3000);
 
 
   /* gsap */
-  gsap.registerPlugin(ScrollTrigger);
-
   /* text animation */
   const paragraphs = document.querySelectorAll(".message-text p");
   const tl = gsap.timeline({
@@ -203,9 +206,6 @@ window.addEventListener('load', () => {
   document.querySelectorAll(".event-wrap__content").forEach((el) => {
     const targetText = el.innerText;
     gsap.set(el, { visibility: "hidden" });
-    el.innerText = targetText.replace(/./g, () => 
-      routteChars.charAt(Math.floor(Math.random() * rouletteChars.length))
-    );
     let obj = { value: 0 };
     gsap.to(obj, {
       value: targetText.length,
