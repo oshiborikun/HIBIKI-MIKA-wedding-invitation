@@ -90,8 +90,8 @@ window.addEventListener('load', () => {
         heart.classList.add('is-spinning');
       })
       // 上昇
-      .to(hibiki, { y: -35, duration: 0.12, ease: "power2.out" })
-      .to(block, { y: -18, duration: 0.1, ease: "power2.out" }, "<")
+      .to(hibiki, { y: -60, duration: 0.12, ease: "power2.out" })
+      .to(block, { y: -30, duration: 0.1, ease: "power2.out" }, "<")
       .to(heart, { bottom: "60px", duration: 0.15, ease: "power2.out" }, "<")
       // 落下
       .to(hibiki, { y: 0, duration: 0.18, ease: "power2.in" })
