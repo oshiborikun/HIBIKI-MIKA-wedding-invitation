@@ -8,19 +8,15 @@ window.addEventListener('load', () => {
   const loadingText = document.querySelector('.loading-text');
   const startTime = Date.now();
 
-  // 初期状態のセット
   gsap.set([loadingImg, loadingText], { opacity: 0 });
 
-  //now loading...
   gsap.to(loadingImg, { opacity: 1, duration: 0.1, delay: 0.1 });
+  gsap.to(loadingText, { opacity: 1, duration: 0.5, delay: 1.0 });
 
   const dotsSpan = document.querySelector('.loading-text span');
   const dots = ['', '.', '..', '...'];
   let dotObj = { index: 0 };
   
-  // loading text fadein
-  gsap.to(loadingText, { opacity: 1, duration: 0.5, delay: 1.0 });
-
   const dotAnim = gsap.to(dotObj, {
     index: 3,
     duration: 1.2,
@@ -31,8 +27,6 @@ window.addEventListener('load', () => {
     }
   });
 
-  //img fadein
-  //loader fadein-out
   const hideLoader = () => {
     if (loader.style.display === 'none') return;
     dotAnim.kill();
@@ -63,11 +57,10 @@ window.addEventListener('load', () => {
   const mBlockSrc = './assets/img/m_block.png';
   const sukaBlockSrc = './assets/img/suka_block.png';
 
-  // 重要：CSSのtransitionをJS側で完全に無効化する
+  // 全てのtransitionを無効化し、margin-bottomを0で初期化
   gsap.set([hibiki, heart, block], { 
-    transition: "none", 
-    transformOrigin: "bottom center",
-    force3D: true 
+    transition: "none",
+    marginBottom: "0px"
   });
 
   [jumpSrc, sukaBlockSrc].forEach(src => {
@@ -75,33 +68,32 @@ window.addEventListener('load', () => {
     img.src = src;
   });
 
-  // タイムライン管理（repeatDelayで3秒周期を維持）
   const jumpTl = gsap.timeline({ repeat: -1, repeatDelay: 2.3 });
 
   function leafHotJump() {
     jumpTl
-      // 開始：画像切り替え
-      .set(hibiki, { attr: { src: jumpSrc }, scaleX: 1.06, x: -3 })
+      // 1. 準備（xやscaleでの微調整もmargin等に干渉しないよう管理）
+      .set(hibiki, { attr: { src: jumpSrc }, scale: 1.06 })
       .set(block, { attr: { src: sukaBlockSrc } })
-      .set(heart, { opacity: 1, bottom: '10px' })
+      .set(heart, { opacity: 1, marginBottom: '10px' })
       .add(() => {
         heart.classList.remove('is-spinning');
         void heart.offsetWidth;
         heart.classList.add('is-spinning');
       })
-      // 上昇
-      .to(hibiki, { y: -60, duration: 0.12, ease: "power2.out" })
-      .to(block, { y: -30, duration: 0.1, ease: "power2.out" }, "<")
-      .to(heart, { bottom: "60px", duration: 0.15, ease: "power2.out" }, "<")
-      // 落下
-      .to(hibiki, { y: 0, duration: 0.18, ease: "power2.in" })
-      .to(block, { y: 0, duration: 0.18, ease: "power2.in" }, "<")
-      .to(heart, { bottom: "90px", duration: 0.4, ease: "power1.out" }, "<")
-      // 着地リセット
-      .set(hibiki, { attr: { src: normalSrc }, scaleX: 1, x: 0 })
+      // 2. 上昇（yプロパティを使わず、marginBottomを増やして無理やり浮かす）
+      .to(hibiki, { marginBottom: "45px", duration: 0.12, ease: "power2.out" })
+      .to(block, { marginBottom: "70px", duration: 0.1, ease: "power2.out" }, "<")
+      .to(heart, { marginBottom: "80px", duration: 0.15, ease: "power2.out" }, "<")
+      // 3. 落下
+      .to(hibiki, { marginBottom: "0px", duration: 0.18, ease: "power2.in" })
+      .to(block, { marginBottom: "0px", duration: 0.18, ease: "power2.in" }, "<")
+      .to(heart, { marginBottom: "110px", duration: 0.4, ease: "power1.out" }, "<")
+      // 4. 着地後のリセット
+      .set(hibiki, { attr: { src: normalSrc }, scale: 1 })
       .to(heart, { opacity: 0, duration: 0.2, delay: 0.5 })
       .set(block, { attr: { src: mBlockSrc } })
-      .set(heart, { bottom: '10px' })
+      .set(heart, { marginBottom: '0px' })
       .add(() => heart.classList.remove('is-spinning'));
   }
 
