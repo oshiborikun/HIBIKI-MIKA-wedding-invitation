@@ -71,4 +71,13 @@ function leafHotJump() {
   block.src = sukaBlockSrc;
 
   heart.classList.remove('is-spinning');
-  void heart.
+  void heart.offsetWidth;
+  heart.classList.add('is-spinning');
+
+  const jumpTl = gsap.timeline();
+
+  // 0.08秒！目にも止まらぬ上昇！
+  jumpTl.to([hibiki, block], {
+    y: (i) => i === 0 ? -35 : -18,
+    duration: 0.08,
+    ease: "
