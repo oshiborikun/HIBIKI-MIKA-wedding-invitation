@@ -2,56 +2,40 @@
 gsap.registerPlugin(ScrollTrigger);
 
 window.addEventListener('load', () => {
-  /* loading */
+  
+  // --- 1. Loader Animation ---
   const loader = document.querySelector('.loader-container');
   const loadingImg = document.querySelector('.site-img__loading');
   const loadingText = document.querySelector('.loading-text');
+  const dotsSpan = document.querySelector('.loading-text span');
   const startTime = Date.now();
 
-  // now loading...
-  setTimeout(() => {
-    loadingImg.style.opacity = '1';
-  }, 100);
+  const loadTl = gsap.timeline();
+  loadTl.to(loadingImg, { opacity: 1, duration: 0.5, delay: 0.1 })
+        .to(loadingText, { opacity: 1, duration: 0.5 }, "-=0.2");
 
-  const dotsSpan = document.querySelector('.loading-text span');
   const dots = ['', '.', '..', '...'];
-  let dotIndex = 0;
-  
-  // loading text fadein
-  setTimeout(() => {
-    loadingText.style.opacity = '1';
-  }, 1000);
+  let dotObj = { i: 0 };
+  const dotAnim = gsap.to(dotObj, {
+    i: 3, duration: 1.5, repeat: -1, ease: "steps(3)",
+    onUpdate: () => { dotsSpan.textContent = dots[Math.round(dotObj.i)]; }
+  });
 
-  const dotInterval = setInterval(() => {
-    dotsSpan.textContent = dots[dotIndex];
-    dotIndex = (dotIndex + 1) % dots.length;
-  }, 400);
-
-  // img fadein / loader fadein-out
   const hideLoader = () => {
     if (loader.style.display === 'none') return;
-    clearInterval(dotInterval);
-    loader.style.transition = 'opacity 0.8s ease';
-    loader.style.opacity = '0';
-    setTimeout(() => {
-      loader.style.display = 'none';
-    }, 800);
+    dotAnim.kill();
+    gsap.to(loader, {
+      opacity: 0, duration: 0.8, ease: "power2.out",
+      onComplete: () => { loader.style.display = 'none'; }
+    });
   };
 
-  const forceShowTimeout = setTimeout(() => {
-    hideLoader();
-  }, 5000);
-
-  const elapsedTime = Date.now() - startTime;
-  const remainingTime = Math.max(0, 3000 - elapsedTime);
-
-  setTimeout(() => {
-    clearTimeout(forceShowTimeout);
-    hideLoader();
-  }, remainingTime);
+  const remaining = Math.max(0, 3000 - (Date.now() - startTime));
+  gsap.delayedCall(remaining / 1000, hideLoader);
+  gsap.delayedCall(5, hideLoader); // 最大5秒で強制非表示
 
 
-  /* hibiki jump */
+  // --- 2. Hibiki Jump (GSAP Timeline Loop) ---
   const hibiki = document.querySelector('.site-img__hibiki');
   const heart = document.querySelector('.site-img__heart');
   const block = document.querySelector('.site-img__block');
@@ -61,89 +45,42 @@ window.addEventListener('load', () => {
   const mBlockSrc = './assets/img/m_block.png';
   const sukaBlockSrc = './assets/img/suka_block.png';
 
-  // プリロード
-  [jumpSrc, sukaBlockSrc].forEach(src => {
-    const img = new Image();
-    img.src = src;
+  // タイムライン定義：絶対にズレない無限ループ
+  const jumpTl = gsap.timeline({ 
+    repeat: -1, 
+    repeatDelay: 2.5,
+    defaults: { ease: "power2.out" } 
   });
 
-  function leafHotJump() {
-    if (document.hidden) return; // バックグラウンドでの爆速化防止
-
-    // 1. リセット（一度 top を 0 に戻して強制的に描画をリセット）
-    hibiki.style.transition = 'none';
-    block.style.transition = 'none';
-    heart.style.transition = 'none';
-    hibiki.style.top = '0px';
-    block.style.top = '0px';
-    void hibiki.offsetWidth; 
-
-    // 2. 上昇アニメーション
-    requestAnimationFrame(() => {
-      if (document.hidden) return;
-
-      hibiki.src = jumpSrc;
-      hibiki.style.width = '96px';
-      hibiki.style.marginRight = '-6px';
-      // flex-endを無視するため translateY ではなく top を使用
-      hibiki.style.top = '-60px'; 
-      hibiki.style.transition = 'top 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
-
-      block.src = sukaBlockSrc;
-      block.style.top = '-20px';
-      block.style.transition = 'top 0.08s ease-out';
-
+  jumpTl
+    // [上昇開始] 画像切り替えと同時に跳ねる
+    .set(hibiki, { attr: { src: jumpSrc }, width: '96px', marginRight: '-6px' })
+    .set(block, { attr: { src: sukaBlockSrc } })
+    .set(heart, { opacity: 1 })
+    .add(() => {
       heart.classList.remove('is-spinning');
       void heart.offsetWidth;
       heart.classList.add('is-spinning');
-      heart.style.opacity = '1';
-      heart.style.bottom = '80px';
-      heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
-    });
+    })
+    // 物理的な移動（yのマイナス値を大きくして高さを出す）
+    .to(hibiki, { y: -65, duration: 0.15 }, 0)
+    .to(block, { y: -25, duration: 0.1 }, 0)
+    .to(heart, { y: -80, duration: 0.2 }, 0)
 
-    // 3. 落下処理
-    setTimeout(() => {
-      hibiki.style.top = '0px';
-      hibiki.style.transition = 'top 0.18s cubic-bezier(0.8, 0, 1, 1)';
+    // [落下] 
+    .to(hibiki, { y: 0, duration: 0.18, ease: "power2.in" }, "+=0.02")
+    .to(block, { y: 0, duration: 0.18, ease: "power2.in" }, "<")
+    .to(heart, { y: -130, duration: 0.45 }, "<") // ハートはそのまま空へ
 
-      block.style.top = '0px';
-      block.style.transition = 'top 0.15s ease-in';
-
-      heart.style.bottom = '110px';
-      heart.style.transition = 'bottom 0.35s ease-out';
-    }, 120);
-
-    // 4. 着地後のリセット
-    setTimeout(() => {
-      hibiki.src = normalSrc;
-      hibiki.style.width = '90px';
-      hibiki.style.marginRight = '0';
-    }, 300);
-
-    // 5. ハート消去とブロック戻し
-    setTimeout(() => {
-      heart.style.opacity = '0';
-      heart.style.transition = 'opacity 0.2s ease-out';
-      block.src = mBlockSrc;
-    }, 1000);
-
-    setTimeout(() => {
-      heart.style.transition = 'none';
-      heart.style.bottom = '10px';
-      heart.classList.remove('is-spinning');
-    }, 1300);
-  }
-
-  // ジャンプ開始とループ設定
-  leafHotJump();
-  setInterval(() => {
-    if (!document.hidden) leafHotJump();
-  }, 3000);
+    // [着地後]
+    .set(hibiki, { attr: { src: normalSrc }, width: '90px', marginRight: '0' })
+    .to(heart, { opacity: 0, duration: 0.2 }, "+=0.3")
+    .set(block, { attr: { src: mBlockSrc } })
+    .set(heart, { y: 0 }); // 次のループ用に座標リセット
 
 
-  /* text animation */
-  const paragraphs = document.querySelectorAll(".message-text p");
-  paragraphs.forEach((p) => {
+  // --- 3. Text Animation (ScrollTrigger) ---
+  document.querySelectorAll(".message-text p").forEach((p) => {
     const text = p.innerHTML;
     p.innerHTML = "";
     const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
@@ -161,105 +98,77 @@ window.addEventListener('load', () => {
       }
     });
 
-    const chars = p.querySelectorAll("span");
-    gsap.to(chars, {
+    gsap.to(p.querySelectorAll("span"), {
       visibility: "visible",
       duration: 0,
       stagger: 0.06,
       scrollTrigger: {
         trigger: p,
-        start: "top 80%",
+        start: "top 85%",
         toggleActions: "play none none none"
       }
     });
   });
 
 
-  /* power on */
-  const slides = document.querySelectorAll(".flame-gba__slide");
-  slides.forEach((slide) => {
-    const tl_gba = gsap.timeline({
+  // --- 4. GBA Power On Animation ---
+  document.querySelectorAll(".flame-gba__slide").forEach((slide) => {
+    gsap.timeline({
       scrollTrigger: {
         trigger: slide,
         start: "top 80%",
         toggleActions: "play none none none"
       }
-    });
-    tl_gba.to(slide, {
-      scaleX: 1,
-      duration: 0.2,
-      ease: "power4.out"
     })
-    .to(slide, {
-      scaleY: 1,
-      duration: 0.2,
-      ease: "power4.out"
-    })
-    .to(slide, {
-      backgroundColor: "transparent",
-      duration: 0.1
-    });
+    .fromTo(slide, { scaleX: 0, scaleY: 0.01 }, { scaleX: 1, duration: 0.3, ease: "power4.out" })
+    .to(slide, { scaleY: 1, duration: 0.3, ease: "power4.out" })
+    .to(slide, { backgroundColor: "transparent", duration: 0.1 });
   });
 
 
-  /* text animation2 */
+  // --- 5. Roulette Text Animation ---
   const rouletteChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   document.querySelectorAll(".event-wrap__content").forEach((el) => {
     const targetText = el.innerText;
     gsap.set(el, { visibility: "hidden" });
-    let obj = { value: 0 };
+    let obj = { val: 0 };
     gsap.to(obj, {
-      value: targetText.length,
-      duration: 0.8,
+      val: targetText.length,
+      duration: 1.0,
       ease: "none",
       scrollTrigger: {
         trigger: el,
-        start: "top 85%", 
+        start: "top 90%",
         toggleActions: "play none none none",
         onEnter: () => gsap.set(el, { visibility: "visible" })
       },
       onUpdate: () => {
-        let result = "";
-        const progress = Math.floor(obj.value);
+        let res = "";
+        const prog = Math.floor(obj.val);
         for (let i = 0; i < targetText.length; i++) {
-          if (i < progress) {
-            result += targetText[i];
-          } else {
-            result += rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
-          }
+          res += (i < prog) ? targetText[i] : rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
         }
-        el.innerText = result;
+        el.innerText = res;
       },
-      onComplete: () => {
-        el.innerText = targetText;
-      }
+      onComplete: () => { el.innerText = targetText; }
     });
   });
 
 
-  /* parallax */
+  // --- 6. Parallax Animation ---
   const parallaxItems = [
-    { selector: ".js-parallax01", y: -30, rotate: 45},
-    { selector: ".js-parallax02", y: -70, rotate: -45}
+    { sel: ".js-parallax01", y: -40, r: 45},
+    { sel: ".js-parallax02", y: -80, r: -45}
   ];
 
   parallaxItems.forEach((item) => {
-    const elements = document.querySelectorAll(item.selector);
-    elements.forEach((el) => {
-      gsap.fromTo(el, 
-        { yPercent: 0, rotation: 0 }, 
-        { 
-          yPercent: item.y, 
-          rotation: item.rotate,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            start: "top bottom", 
-            end: "bottom top",   
-            scrub: 2
-          }
+    document.querySelectorAll(item.sel).forEach((el) => {
+      gsap.fromTo(el, { y: 0, rotation: 0 }, { 
+        y: item.y, rotation: item.r, ease: "none",
+        scrollTrigger: {
+          trigger: el, start: "top bottom", end: "bottom top", scrub: 1.5
         }
-      );
+      });
     });
   });
 });
