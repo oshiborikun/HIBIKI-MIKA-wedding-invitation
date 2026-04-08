@@ -8,11 +8,11 @@ window.addEventListener('load', () => {
   const loadingText = document.querySelector('.loading-text');
   const startTime = Date.now();
 
-  // CSSの干渉を防ぐため初期化
+  // 初期状態のセット
   gsap.set([loadingImg, loadingText], { opacity: 0 });
 
   //now loading...
-  gsap.to(loadingImg, { opacity: 1, duration: 0.5, delay: 0.1 });
+  gsap.to(loadingImg, { opacity: 1, duration: 0.1, delay: 0.1 });
 
   const dotsSpan = document.querySelector('.loading-text span');
   const dots = ['', '.', '..', '...'];
@@ -23,7 +23,7 @@ window.addEventListener('load', () => {
 
   const dotAnim = gsap.to(dotObj, {
     index: 3,
-    duration: 1.5,
+    duration: 1.2,
     repeat: -1,
     ease: "steps(3)",
     onUpdate: () => {
@@ -63,39 +63,43 @@ window.addEventListener('load', () => {
   const mBlockSrc = './assets/img/m_block.png';
   const sukaBlockSrc = './assets/img/suka_block.png';
 
-  // CSSのtransitionを無効化（JSの制御と衝突させないため）
-  gsap.set([hibiki, heart, block], { transition: "none" });
+  // 重要：CSSのtransitionをJS側で完全に無効化する
+  gsap.set([hibiki, heart, block], { 
+    transition: "none", 
+    transformOrigin: "bottom center",
+    force3D: true 
+  });
 
   [jumpSrc, sukaBlockSrc].forEach(src => {
     const img = new Image();
     img.src = src;
   });
 
-  // タイムラインを定義（この段階では開始しない）
-  const jumpTl = gsap.timeline({ repeat: -1, repeatDelay: 2.5 });
+  // タイムライン管理（repeatDelayで3秒周期を維持）
+  const jumpTl = gsap.timeline({ repeat: -1, repeatDelay: 2.3 });
 
   function leafHotJump() {
     jumpTl
-      // 1. ジャンプ開始（切り替え）
-      .set(hibiki, { attr: { src: jumpSrc }, width: '96px', marginRight: '-6px' })
+      // 開始：画像切り替え
+      .set(hibiki, { attr: { src: jumpSrc }, scaleX: 1.06, x: -3 })
       .set(block, { attr: { src: sukaBlockSrc } })
       .set(heart, { opacity: 1, bottom: '10px' })
       .add(() => {
-          heart.classList.remove('is-spinning');
-          void heart.offsetWidth;
-          heart.classList.add('is-spinning');
+        heart.classList.remove('is-spinning');
+        void heart.offsetWidth;
+        heart.classList.add('is-spinning');
       })
-      // 2. 上昇
-      .to(hibiki, { y: -35, duration: 0.15, ease: "power2.out" })
+      // 上昇
+      .to(hibiki, { y: -35, duration: 0.12, ease: "power2.out" })
       .to(block, { y: -18, duration: 0.1, ease: "power2.out" }, "<")
-      .to(heart, { bottom: "60px", duration: 0.2, ease: "power2.out" }, "<")
-      // 3. 落下
-      .to(hibiki, { y: 0, duration: 0.2, ease: "power2.in" })
-      .to(block, { y: 0, duration: 0.2, ease: "power2.in" }, "<")
+      .to(heart, { bottom: "60px", duration: 0.15, ease: "power2.out" }, "<")
+      // 落下
+      .to(hibiki, { y: 0, duration: 0.18, ease: "power2.in" })
+      .to(block, { y: 0, duration: 0.18, ease: "power2.in" }, "<")
       .to(heart, { bottom: "90px", duration: 0.4, ease: "power1.out" }, "<")
-      // 4. 着地後の処理
-      .set(hibiki, { attr: { src: normalSrc }, width: '90px', marginRight: '0' })
-      .to(heart, { opacity: 0, duration: 0.3, delay: 0.5 })
+      // 着地リセット
+      .set(hibiki, { attr: { src: normalSrc }, scaleX: 1, x: 0 })
+      .to(heart, { opacity: 0, duration: 0.2, delay: 0.5 })
       .set(block, { attr: { src: mBlockSrc } })
       .set(heart, { bottom: '10px' })
       .add(() => heart.classList.remove('is-spinning'));
@@ -106,11 +110,11 @@ window.addEventListener('load', () => {
 
   /* gsap */
   /* text animation */
-  document.querySelectorAll(".message-text p").forEach((p) => {
+  const paragraphs = document.querySelectorAll(".message-text p");
+  paragraphs.forEach((p) => {
     const text = p.innerHTML;
     p.innerHTML = "";
     const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
-    
     nodes.forEach(node => {
       if (node.nodeType === 3) {
         node.textContent.split("").forEach(char => {
@@ -125,14 +129,13 @@ window.addEventListener('load', () => {
       }
     });
 
-    const chars = p.querySelectorAll("span");
-    gsap.to(chars, {
+    gsap.to(p.querySelectorAll("span"), {
       visibility: "visible",
       duration: 0,
-      stagger: 0.08, // 少しゆっくりに調整
+      stagger: 0.06,
       scrollTrigger: {
         trigger: p,
-        start: "top 85%",
+        start: "top 80%",
         toggleActions: "play none none none"
       }
     });
@@ -140,7 +143,8 @@ window.addEventListener('load', () => {
 
 
   /* power on */
-  document.querySelectorAll(".flame-gba__slide").forEach((slide) => {
+  const slides = document.querySelectorAll(".flame-gba__slide");
+  slides.forEach((slide) => {
     gsap.timeline({
       scrollTrigger: {
         trigger: slide,
@@ -148,9 +152,8 @@ window.addEventListener('load', () => {
         toggleActions: "play none none none"
       }
     })
-    .set(slide, { scaleX: 0, scaleY: 0.01 }) // 初期状態をセット
-    .to(slide, { scaleX: 1, duration: 0.3, ease: "power4.out" })
-    .to(slide, { scaleY: 1, duration: 0.3, ease: "power4.out" })
+    .fromTo(slide, { scaleX: 0, scaleY: 0.01 }, { scaleX: 1, duration: 0.2, ease: "power4.out" })
+    .to(slide, { scaleY: 1, duration: 0.2, ease: "power4.out" })
     .to(slide, { backgroundColor: "transparent", duration: 0.1 });
   });
 
@@ -160,15 +163,14 @@ window.addEventListener('load', () => {
   document.querySelectorAll(".event-wrap__content").forEach((el) => {
     const targetText = el.innerText;
     gsap.set(el, { visibility: "hidden" });
-
     let obj = { value: 0 };
     gsap.to(obj, {
       value: targetText.length,
-      duration: 1.2, // 高速化を防ぐため少し長めに設定
+      duration: 0.8,
       ease: "none",
       scrollTrigger: {
         trigger: el,
-        start: "top 90%", 
+        start: "top 85%", 
         toggleActions: "play none none none",
         onEnter: () => gsap.set(el, { visibility: "visible" })
       },
@@ -193,20 +195,17 @@ window.addEventListener('load', () => {
 
   parallaxItems.forEach((item) => {
     document.querySelectorAll(item.selector).forEach((el) => {
-      gsap.fromTo(el, 
-        { yPercent: 0, rotation: 0 }, 
-        { 
-          yPercent: item.y, 
-          rotation: item.rotate,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            start: "top bottom", 
-            end: "bottom top",   
-            scrub: 1.5 // 追従を少し滑らかに
-          }
+      gsap.fromTo(el, { yPercent: 0, rotation: 0 }, { 
+        yPercent: item.y, 
+        rotation: item.rotate,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "top bottom", 
+          end: "bottom top",   
+          scrub: 2
         }
-      );
+      });
     });
   });
 });
