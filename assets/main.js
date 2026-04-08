@@ -59,7 +59,7 @@ const jumpSrc = './assets/img/hibiki_jump.png';
 const mBlockSrc = './assets/img/m_block.png';
 const sukaBlockSrc = './assets/img/suka_block.png';
 
-[jumpSrc, sukaBlockSrc].forEach(src => {
+[normalSrc, jumpSrc, mBlockSrc, sukaBlockSrc].forEach(src => {
   const img = new Image();
   img.src = src;
 });
@@ -68,59 +68,56 @@ function leafHotJump() {
   hibiki.src = jumpSrc;
   hibiki.style.width = '96px';
   hibiki.style.marginRight = '-6px';
-  hibiki.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  hibiki.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
   hibiki.style.transform = 'translateY(-35px)';
 
   block.src = sukaBlockSrc;
-  block.style.transition = 'transform 0.2s ease-out';
+  block.style.transition = 'transform 0.3s ease-out';
   block.style.transform = 'translateY(-18px)';
 
   heart.classList.remove('is-spinning');
-  void heart.offsetWidth;
-  heart.classList.add('is-spinning');
+  void heart.offsetWidth; // 
   heart.style.opacity = '1';
-  heart.style.transition = 'bottom 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)';
+  heart.style.transition = 'bottom 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
   heart.style.bottom = '60px';
+  heart.classList.add('is-spinning');
 
   setTimeout(() => {
-    hibiki.style.transition = 'transform 0.4s cubic-bezier(0.5, 0, 0.75, 0)';
+    hibiki.style.transition = 'transform 0.4s cubic-bezier(0.64, 0, 0.78, 0)';
     hibiki.style.transform = 'translateY(0)';
 
-    block.style.transition = 'transform 0.3s ease-in';
+    block.style.transition = 'transform 0.4s ease-in';
     block.style.transform = 'translateY(0)';
 
-    heart.style.transition = 'bottom 0.6s ease-out';
+    heart.style.transition = 'bottom 0.8s ease-out, opacity 0.5s ease-out 0.3s';
     heart.style.bottom = '90px';
-  }, 300);
+    heart.style.opacity = '0';
+  }, 400);
 
   setTimeout(() => {
     hibiki.src = normalSrc;
     hibiki.style.width = '90px';
     hibiki.style.marginRight = '0';
-  }, 700);
-
-  setTimeout(() => {
-    heart.style.transition = 'opacity 0.4s ease-out';
-    heart.style.opacity = '0';
     block.src = mBlockSrc;
-  }, 1200);
+  }, 850);
 
   setTimeout(() => {
     heart.style.transition = 'none';
     heart.style.bottom = '10px';
     heart.classList.remove('is-spinning');
-  }, 1600);
+  }, 1700);
 }
 
 leafHotJump();
-setInterval(leafHotJump, 4000);
+setInterval(leafHotJump, 4500);
+
 
 /* gsap */
 gsap.registerPlugin(ScrollTrigger);
 
 /* text animation */
 const paragraphs = document.querySelectorAll(".message-text p");
-const tl = gsap.timeline({
+const textTl = gsap.timeline({
   scrollTrigger: {
     trigger: ".message-text",
     start: "top 80%",
@@ -150,7 +147,7 @@ paragraphs.forEach((p) => {
 
   const chars = p.querySelectorAll("span");
 
-  tl.to(chars, {
+  textTl.to(chars, {
     visibility: "visible",
     duration: 0,
     stagger: 0.06
@@ -162,7 +159,7 @@ paragraphs.forEach((p) => {
 const slides = document.querySelectorAll(".flame-gba__slide");
 
 slides.forEach((slide) => {
-  const tl = gsap.timeline({
+  const slideTl = gsap.timeline({
     scrollTrigger: {
       trigger: slide,
       start: "top 80%",
@@ -170,7 +167,7 @@ slides.forEach((slide) => {
     }
   });
 
-  tl.to(slide, {
+  slideTl.to(slide, {
     scaleX: 1,
     duration: 0.2,
     ease: "power4.out"
