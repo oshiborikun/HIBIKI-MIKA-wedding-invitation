@@ -8,43 +8,48 @@ window.addEventListener('load', () => {
   const loadingText = document.querySelector('.loading-text');
   const startTime = Date.now();
 
-  gsap.set([loadingImg, loadingText], { opacity: 0 });
-
-  gsap.to(loadingImg, { opacity: 1, duration: 0.1, delay: 0.1 });
-  gsap.to(loadingText, { opacity: 1, duration: 0.5, delay: 1.0 });
+  //now loading...
+  setTimeout(() => {
+    loadingImg.style.opacity = '1';
+  }, 100);
 
   const dotsSpan = document.querySelector('.loading-text span');
   const dots = ['', '.', '..', '...'];
-  let dotObj = { index: 0 };
+  let dotIndex = 0;
   
-  const dotAnim = gsap.to(dotObj, {
-    index: 3,
-    duration: 1.2,
-    repeat: -1,
-    ease: "steps(3)",
-    onUpdate: () => {
-      dotsSpan.textContent = dots[Math.round(dotObj.index)];
-    }
-  });
+  // loading text fadein
+  setTimeout(() => {
+    loadingText.style.opacity = '1';
+  }, 1000);
 
+  const dotInterval = setInterval(() => {
+    dotsSpan.textContent = dots[dotIndex];
+    dotIndex = (dotIndex + 1) % dots.length;
+  }, 400);
+
+  //img fadein
   const hideLoader = () => {
     if (loader.style.display === 'none') return;
-    dotAnim.kill();
-    gsap.to(loader, {
-      opacity: 0,
-      duration: 0.8,
-      ease: "power2.out",
-      onComplete: () => {
-        loader.style.display = 'none';
-      }
-    });
+    clearInterval(dotInterval);
+    loader.style.transition = 'opacity 0.8s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 800);
   };
 
-  const elapsedTime = Date.now() - startTime;
-  const remainingTime = Math.max(0, 3000 - elapsedTime) / 1000;
+  //loader fadein-out
+  const forceShowTimeout = setTimeout(() => {
+    hideLoader();
+  }, 5000);
 
-  gsap.delayedCall(5, hideLoader);
-  gsap.delayedCall(remainingTime, hideLoader);
+  const elapsedTime = Date.now() - startTime;
+  const remainingTime = Math.max(0, 3000 - elapsedTime);
+
+  setTimeout(() => {
+    clearTimeout(forceShowTimeout);
+    hideLoader();
+  }, remainingTime);
 
 
   /* hibiki jump */
@@ -57,52 +62,89 @@ window.addEventListener('load', () => {
   const mBlockSrc = './assets/img/m_block.png';
   const sukaBlockSrc = './assets/img/suka_block.png';
 
-  // 全てのtransitionを無効化し、margin-bottomを0で初期化
-  gsap.set([hibiki, heart, block], { 
-    transition: "none",
-    marginBottom: "0px"
-  });
-
   [jumpSrc, sukaBlockSrc].forEach(src => {
     const img = new Image();
     img.src = src;
   });
 
-  const jumpTl = gsap.timeline({ repeat: -1, repeatDelay: 2.3 });
-
   function leafHotJump() {
-    jumpTl
-      // 1. 準備（xやscaleでの微調整もmargin等に干渉しないよう管理）
-      .set(hibiki, { attr: { src: jumpSrc }, scale: 1.06 })
-      .set(block, { attr: { src: sukaBlockSrc } })
-      .set(heart, { opacity: 1, marginBottom: '10px' })
-      .add(() => {
-        heart.classList.remove('is-spinning');
-        void heart.offsetWidth;
-        heart.classList.add('is-spinning');
-      })
-      // 2. 上昇（yプロパティを使わず、marginBottomを増やして無理やり浮かす）
-      .to(hibiki, { marginBottom: "45px", duration: 0.12, ease: "power2.out" })
-      .to(block, { marginBottom: "70px", duration: 0.1, ease: "power2.out" }, "<")
-      .to(heart, { marginBottom: "80px", duration: 0.15, ease: "power2.out" }, "<")
-      // 3. 落下
-      .to(hibiki, { marginBottom: "0px", duration: 0.18, ease: "power2.in" })
-      .to(block, { marginBottom: "0px", duration: 0.18, ease: "power2.in" }, "<")
-      .to(heart, { marginBottom: "110px", duration: 0.4, ease: "power1.out" }, "<")
-      // 4. 着地後のリセット
-      .set(hibiki, { attr: { src: normalSrc }, scale: 1 })
-      .to(heart, { opacity: 0, duration: 0.2, delay: 0.5 })
-      .set(block, { attr: { src: mBlockSrc } })
-      .set(heart, { marginBottom: '0px' })
-      .add(() => heart.classList.remove('is-spinning'));
+    // スマホのバックグラウンド時は実行しない（爆速化対策）
+    if (document.hidden) return;
+
+    // 以前の CSS transition を一時的に無効化し、JSでの制御を優先させる
+    hibiki.style.transition = 'none';
+    block.style.transition = 'none';
+    heart.style.transition = 'none';
+
+    hibiki.src = jumpSrc;
+    hibiki.style.width = '96px';
+    hibiki.style.marginRight = '-6px';
+    // yプロパティではなく、直接 transform を書き換えて高さを出す（-60pxなど調整可）
+    hibiki.style.transform = 'translateY(-60px)';
+    hibiki.style.transition = 'transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
+
+    block.src = sukaBlockSrc;
+    block.style.transform = 'translateY(-20px)';
+    block.style.transition = 'transform 0.08s ease-out';
+
+    heart.classList.remove('is-spinning');
+    void heart.offsetWidth;
+    heart.classList.add('is-spinning');
+    heart.style.opacity = '1';
+    heart.style.bottom = '80px';
+    heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
+
+    setTimeout(() => {
+      hibiki.style.transform = 'translateY(0)';
+      hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
+
+      block.style.transform = 'translateY(0)';
+      block.style.transition = 'transform 0.15s ease-in';
+
+      heart.style.bottom = '110px';
+      heart.style.transition = 'bottom 0.35s ease-out';
+    }, 110);
+
+    setTimeout(() => {
+      hibiki.src = normalSrc;
+      hibiki.style.width = '90px';
+      hibiki.style.marginRight = '0';
+    }, 260);
+
+    setTimeout(() => {
+      heart.style.opacity = '0';
+      heart.style.transition = 'opacity 0.2s ease-out';
+      block.src = mBlockSrc;
+    }, 1000);
+
+    setTimeout(() => {
+      heart.style.transition = 'none';
+      heart.style.bottom = '10px';
+      heart.classList.remove('is-spinning');
+    }, 1250);
   }
 
+  // 最初の実行
   leafHotJump();
+  // スマホで爆速になるのを防ぐため setInterval 内でも表示状態をチェック
+  setInterval(() => {
+    if (!document.hidden) leafHotJump();
+  }, 3000);
 
 
   /* gsap */
+  gsap.registerPlugin(ScrollTrigger);
+
   /* text animation */
   const paragraphs = document.querySelectorAll(".message-text p");
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".message-text",
+      start: "top 80%",
+      toggleActions: "play none none none"
+    }
+  });
+
   paragraphs.forEach((p) => {
     const text = p.innerHTML;
     p.innerHTML = "";
@@ -120,16 +162,11 @@ window.addEventListener('load', () => {
         p.appendChild(node.cloneNode(true));
       }
     });
-
-    gsap.to(p.querySelectorAll("span"), {
+    const chars = p.querySelectorAll("span");
+    tl.to(chars, {
       visibility: "visible",
       duration: 0,
-      stagger: 0.06,
-      scrollTrigger: {
-        trigger: p,
-        start: "top 80%",
-        toggleActions: "play none none none"
-      }
+      stagger: 0.06
     });
   });
 
@@ -137,16 +174,27 @@ window.addEventListener('load', () => {
   /* power on */
   const slides = document.querySelectorAll(".flame-gba__slide");
   slides.forEach((slide) => {
-    gsap.timeline({
+    const tl_gba = gsap.timeline({
       scrollTrigger: {
         trigger: slide,
         start: "top 80%",
         toggleActions: "play none none none"
       }
+    });
+    tl_gba.to(slide, {
+      scaleX: 1,
+      duration: 0.2,
+      ease: "power4.out"
     })
-    .fromTo(slide, { scaleX: 0, scaleY: 0.01 }, { scaleX: 1, duration: 0.2, ease: "power4.out" })
-    .to(slide, { scaleY: 1, duration: 0.2, ease: "power4.out" })
-    .to(slide, { backgroundColor: "transparent", duration: 0.1 });
+    .to(slide, {
+      scaleY: 1,
+      duration: 0.2,
+      ease: "power4.out"
+    })
+    .to(slide, {
+      backgroundColor: "transparent",
+      duration: 0.1
+    });
   });
 
 
@@ -155,6 +203,9 @@ window.addEventListener('load', () => {
   document.querySelectorAll(".event-wrap__content").forEach((el) => {
     const targetText = el.innerText;
     gsap.set(el, { visibility: "hidden" });
+    el.innerText = targetText.replace(/./g, () => 
+      routteChars.charAt(Math.floor(Math.random() * rouletteChars.length))
+    );
     let obj = { value: 0 };
     gsap.to(obj, {
       value: targetText.length,
@@ -170,11 +221,17 @@ window.addEventListener('load', () => {
         let result = "";
         const progress = Math.floor(obj.value);
         for (let i = 0; i < targetText.length; i++) {
-          result += (i < progress) ? targetText[i] : rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
+          if (i < progress) {
+            result += targetText[i];
+          } else {
+            result += rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
+          }
         }
         el.innerText = result;
       },
-      onComplete: () => { el.innerText = targetText; }
+      onComplete: () => {
+        el.innerText = targetText;
+      }
     });
   });
 
@@ -186,18 +243,22 @@ window.addEventListener('load', () => {
   ];
 
   parallaxItems.forEach((item) => {
-    document.querySelectorAll(item.selector).forEach((el) => {
-      gsap.fromTo(el, { yPercent: 0, rotation: 0 }, { 
-        yPercent: item.y, 
-        rotation: item.rotate,
-        ease: "none",
-        scrollTrigger: {
-          trigger: el,
-          start: "top bottom", 
-          end: "bottom top",   
-          scrub: 2
+    const elements = document.querySelectorAll(item.selector);
+    elements.forEach((el) => {
+      gsap.fromTo(el, 
+        { yPercent: 0, rotation: 0 }, 
+        { 
+          yPercent: item.y, 
+          rotation: item.rotate,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top bottom", 
+            end: "bottom top",   
+            scrub: 2
+          }
         }
-      });
+      );
     });
   });
 });
