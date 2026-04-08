@@ -68,53 +68,52 @@ function leafHotJump() {
   hibiki.src = jumpSrc;
   hibiki.style.width = '96px';
   hibiki.style.marginRight = '-6px';
-  hibiki.style.transition = 'transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
+  hibiki.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)';
   hibiki.style.transform = 'translateY(-35px)';
 
   block.src = sukaBlockSrc;
-  block.style.transition = 'transform 0.08s ease-out';
+  block.style.transition = 'transform 0.2s ease-out';
   block.style.transform = 'translateY(-18px)';
 
   heart.classList.remove('is-spinning');
   void heart.offsetWidth;
   heart.classList.add('is-spinning');
   heart.style.opacity = '1';
-  heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
+  heart.style.transition = 'bottom 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)';
   heart.style.bottom = '60px';
 
   setTimeout(() => {
-    hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
+    hibiki.style.transition = 'transform 0.4s cubic-bezier(0.5, 0, 0.75, 0)';
     hibiki.style.transform = 'translateY(0)';
 
-    block.style.transition = 'transform 0.15s ease-in';
+    block.style.transition = 'transform 0.3s ease-in';
     block.style.transform = 'translateY(0)';
 
-    heart.style.transition = 'bottom 0.35s ease-out';
+    heart.style.transition = 'bottom 0.6s ease-out';
     heart.style.bottom = '90px';
-  }, 110);
+  }, 300);
 
   setTimeout(() => {
     hibiki.src = normalSrc;
     hibiki.style.width = '90px';
     hibiki.style.marginRight = '0';
-  }, 260);
+  }, 700);
 
   setTimeout(() => {
-    heart.style.transition = 'opacity 0.2s ease-out';
+    heart.style.transition = 'opacity 0.4s ease-out';
     heart.style.opacity = '0';
     block.src = mBlockSrc;
-  }, 1000);
+  }, 1200);
 
   setTimeout(() => {
     heart.style.transition = 'none';
     heart.style.bottom = '10px';
     heart.classList.remove('is-spinning');
-  }, 1250);
+  }, 1600);
 }
 
 leafHotJump();
-setInterval(leafHotJump, 3000);
-
+setInterval(leafHotJump, 4000);
 
 /* gsap */
 gsap.registerPlugin(ScrollTrigger);
