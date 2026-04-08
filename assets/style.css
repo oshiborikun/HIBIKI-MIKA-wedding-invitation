@@ -262,8 +262,10 @@ span{
 .site-img__hibiki{
   width: 90px;
   height: auto;
-  will-change: transform;
+  will-change: top;
   flex-shrink: 0;
+    transition:none;
+    
 }
 
 .fv-wrap__img--human > * {
