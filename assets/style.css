@@ -244,7 +244,7 @@ span{
   width: 64px;
   position: relative;
   z-index: 2;
-  transition: transform 0.2s ease-out;
+  /*transition: transform 0.2s ease-out;*/
 }
 
 .fv-wrap__img--human{
@@ -262,8 +262,12 @@ span{
 .site-img__hibiki{
   width: 90px;
   height: auto;
-  will-change: transform, width;
+  will-change: transform;
   flex-shrink: 0;
+}
+
+.fv-wrap__img--human > * {
+  backface-visibility: hidden;
 }
 
 .site-img__mika{
