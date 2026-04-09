@@ -1,176 +1,261 @@
-/* GSAPの登録 */
-gsap.registerPlugin(ScrollTrigger);
-
+/* loading */
 window.addEventListener('load', () => {
-  
-  // --- 1. Loader Animation ---
   const loader = document.querySelector('.loader-container');
   const loadingImg = document.querySelector('.site-img__loading');
   const loadingText = document.querySelector('.loading-text');
-  const dotsSpan = document.querySelector('.loading-text span');
   const startTime = Date.now();
 
-  const loadTl = gsap.timeline();
-  loadTl.to(loadingImg, { opacity: 1, duration: 0.5, delay: 0.1 })
-        .to(loadingText, { opacity: 1, duration: 0.5 }, "-=0.2");
+  //now loading...
+  setTimeout(() => {
+    loadingImg.style.opacity = '1';
+  }, 100);
 
+  const dotsSpan = document.querySelector('.loading-text span');
   const dots = ['', '.', '..', '...'];
-  let dotObj = { i: 0 };
-  const dotAnim = gsap.to(dotObj, {
-    i: 3, duration: 1.5, repeat: -1, ease: "steps(3)",
-    onUpdate: () => { dotsSpan.textContent = dots[Math.round(dotObj.i)]; }
-  });
+  let dotIndex = 0;
+  
+  // loading text fadein
+  setTimeout(() => {
+    loadingText.style.opacity = '1';
+  }, 1000);
 
+  const dotInterval = setInterval(() => {
+    dotsSpan.textContent = dots[dotIndex];
+    dotIndex = (dotIndex + 1) % dots.length;
+  }, 400);
+
+  //img fadein
   const hideLoader = () => {
     if (loader.style.display === 'none') return;
-    dotAnim.kill();
-    gsap.to(loader, {
-      opacity: 0, duration: 0.8, ease: "power2.out",
-      onComplete: () => { loader.style.display = 'none'; }
-    });
+    clearInterval(dotInterval);
+    loader.style.transition = 'opacity 0.8s ease';
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 800);
   };
 
-  const remaining = Math.max(0, 3000 - (Date.now() - startTime));
-  gsap.delayedCall(remaining / 1000, hideLoader);
-  gsap.delayedCall(5, hideLoader); // 最大5秒で強制非表示
+  //loader fadein-out
+  const forceShowTimeout = setTimeout(() => {
+    hideLoader();
+  }, 5000);
+
+  const elapsedTime = Date.now() - startTime;
+  const remainingTime = Math.max(0, 3000 - elapsedTime);
+
+  setTimeout(() => {
+    clearTimeout(forceShowTimeout);
+    hideLoader();
+  }, remainingTime);
+});
+
+/* hibiki jump */
+const hibiki = document.querySelector('.site-img__hibiki');
+const heart = document.querySelector('.site-img__heart');
+const block = document.querySelector('.site-img__block');
+
+const normalSrc = './assets/img/hibiki_dot.png';
+const jumpSrc = './assets/img/hibiki_jump.png';
+const mBlockSrc = './assets/img/m_block.png';
+const sukaBlockSrc = './assets/img/suka_block.png';
+
+[jumpSrc, sukaBlockSrc].forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
+
+function leafHotJump() {
+  hibiki.src = jumpSrc;
+  hibiki.style.width = '96px';
+  hibiki.style.marginRight = '-6px';
+  hibiki.style.transition = 'transform 0.1s cubic-bezier(0.1, 0.9, 0.2, 1)';
+  hibiki.style.transform = 'translateY(-35px)';
+
+  block.src = sukaBlockSrc;
+  block.style.transition = 'transform 0.08s ease-out';
+  block.style.transform = 'translateY(-18px)';
+
+  heart.classList.remove('is-spinning');
+  void heart.offsetWidth;
+  heart.classList.add('is-spinning');
+  heart.style.opacity = '1';
+  heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
+  heart.style.bottom = '60px';
+
+  setTimeout(() => {
+    hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
+    hibiki.style.transform = 'translateY(0)';
+
+    block.style.transition = 'transform 0.15s ease-in';
+    block.style.transform = 'translateY(0)';
+
+    heart.style.transition = 'bottom 0.35s ease-out';
+    heart.style.bottom = '90px';
+  }, 110);
+
+  setTimeout(() => {
+    hibiki.src = normalSrc;
+    hibiki.style.width = '90px';
+    hibiki.style.marginRight = '0';
+  }, 260);
+
+  setTimeout(() => {
+    heart.style.transition = 'opacity 0.2s ease-out';
+    heart.style.opacity = '0';
+    block.src = mBlockSrc;
+  }, 1000);
+
+  setTimeout(() => {
+    heart.style.transition = 'none';
+    heart.style.bottom = '10px';
+    heart.classList.remove('is-spinning');
+  }, 1250);
+}
+
+leafHotJump();
+setInterval(leafHotJump, 3000);
 
 
-    // --- 2. Hibiki Jump (GSAP Timeline Loop) ---
-  const hibiki = document.querySelector('.site-img__hibiki');
-  const heart = document.querySelector('.site-img__heart');
-  const block = document.querySelector('.site-img__block');
+/* gsap */
+gsap.registerPlugin(ScrollTrigger);
 
-  const normalSrc = './assets/img/hibiki_dot.png';
-  const jumpSrc = './assets/img/hibiki_jump.png';
-  const mBlockSrc = './assets/img/m_block.png';
-  const sukaBlockSrc = './assets/img/suka_block.png';
+/* text animation */
+const paragraphs = document.querySelectorAll(".message-text p");
+const tl = gsap.timeline({
+  scrollTrigger: {
+    trigger: ".message-text",
+    start: "top 80%",
+    toggleActions: "play none none none"
+  }
+});
 
-  const jumpTl = gsap.timeline({ 
-    repeat: -1, 
-    repeatDelay: 2.5 
-  });
-
-  jumpTl
-    // [1. 上昇開始] 0.15sで頂点へ
-    .set(hibiki, { attr: { src: jumpSrc }, width: '96px', marginRight: '-6px' })
-    .to(hibiki, { y: -70, duration: 0.15, ease: "power2.out" })
-
-    // [2. ブロック衝突] Hibikiが頂点に達した瞬間(0.15s)に発火
-    .set(block, { attr: { src: sukaBlockSrc } }, 0.15)
-    // ブロックが反動で上に20px動いて戻る
-    .to(block, { y: -20, duration: 0.05, yoyo: true, repeat: 1, ease: "power2.out" }, 0.15)
-    
-    // [3. ハート射出] 衝突と同時に出現
-    .set(heart, { y: 0, opacity: 1 }, 0.15) 
-    .add(() => {
-      heart.classList.remove('is-spinning');
-      void heart.offsetWidth;
-      heart.classList.add('is-spinning');
-    }, 0.15)
-    // ハートを大きく上に飛ばす
-    .to(heart, { y: -150, duration: 0.5, ease: "power1.out" }, 0.15)
-
-    // [4. 落下・着地]
-    .to(hibiki, { y: 0, duration: 0.2, ease: "power2.in" }, "+=0.05") 
-    .set(hibiki, { attr: { src: normalSrc }, width: '90px', marginRight: '0' })
-    
-    // [5. 後処理] ハートが消えてブロックが戻る
-    .to(heart, { opacity: 0, duration: 0.1 }, "-=0.1")
-    .set(block, { attr: { src: mBlockSrc } })
-    .set(heart, { y: 0 }); // 次のループ用に座標リセット
-
-
-
-  // --- 3. Text Animation (ScrollTrigger) ---
-  document.querySelectorAll(".message-text p").forEach((p) => {
-    const text = p.innerHTML;
-    p.innerHTML = "";
-    const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
-    nodes.forEach(node => {
-      if (node.nodeType === 3) {
-        node.textContent.split("").forEach(char => {
-          const span = document.createElement("span");
-          span.textContent = char;
-          span.style.display = "inline-block";
-          span.style.visibility = "hidden";
-          p.appendChild(span);
-        });
-      } else {
-        p.appendChild(node.cloneNode(true));
-      }
-    });
-
-    gsap.to(p.querySelectorAll("span"), {
-      visibility: "visible",
-      duration: 0,
-      stagger: 0.06,
-      scrollTrigger: {
-        trigger: p,
-        start: "top 85%",
-        toggleActions: "play none none none"
-      }
-    });
-  });
-
-
-  // --- 4. GBA Power On Animation ---
-  document.querySelectorAll(".flame-gba__slide").forEach((slide) => {
-    gsap.timeline({
-      scrollTrigger: {
-        trigger: slide,
-        start: "top 80%",
-        toggleActions: "play none none none"
-      }
-    })
-    .fromTo(slide, { scaleX: 0, scaleY: 0.01 }, { scaleX: 1, duration: 0.3, ease: "power4.out" })
-    .to(slide, { scaleY: 1, duration: 0.3, ease: "power4.out" })
-    .to(slide, { backgroundColor: "transparent", duration: 0.1 });
-  });
-
-
-  // --- 5. Roulette Text Animation ---
-  const rouletteChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  document.querySelectorAll(".event-wrap__content").forEach((el) => {
-    const targetText = el.innerText;
-    gsap.set(el, { visibility: "hidden" });
-    let obj = { val: 0 };
-    gsap.to(obj, {
-      val: targetText.length,
-      duration: 1.0,
-      ease: "none",
-      scrollTrigger: {
-        trigger: el,
-        start: "top 90%",
-        toggleActions: "play none none none",
-        onEnter: () => gsap.set(el, { visibility: "visible" })
-      },
-      onUpdate: () => {
-        let res = "";
-        const prog = Math.floor(obj.val);
-        for (let i = 0; i < targetText.length; i++) {
-          res += (i < prog) ? targetText[i] : rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
-        }
-        el.innerText = res;
-      },
-      onComplete: () => { el.innerText = targetText; }
-    });
-  });
-
-
-  // --- 6. Parallax Animation ---
-  const parallaxItems = [
-    { sel: ".js-parallax01", y: -40, r: 45},
-    { sel: ".js-parallax02", y: -80, r: -45}
-  ];
-
-  parallaxItems.forEach((item) => {
-    document.querySelectorAll(item.sel).forEach((el) => {
-      gsap.fromTo(el, { y: 0, rotation: 0 }, { 
-        y: item.y, rotation: item.r, ease: "none",
-        scrollTrigger: {
-          trigger: el, start: "top bottom", end: "bottom top", scrub: 1.5
-        }
+paragraphs.forEach((p) => {
+  const text = p.innerHTML;
+  p.innerHTML = "";
+  
+  const nodes = Array.from(new DOMParser().parseFromString(text, 'text/html').body.childNodes);
+  
+  nodes.forEach(node => {
+    if (node.nodeType === 3) {
+      node.textContent.split("").forEach(char => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.style.display = "inline-block";
+        span.style.visibility = "hidden";
+        p.appendChild(span);
       });
-    });
+    } else {
+      p.appendChild(node.cloneNode(true));
+    }
+  });
+
+  const chars = p.querySelectorAll("span");
+
+  tl.to(chars, {
+    visibility: "visible",
+    duration: 0,
+    stagger: 0.06
+  });
+});
+
+
+/* power on */
+const slides = document.querySelectorAll(".flame-gba__slide");
+
+slides.forEach((slide) => {
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: slide,
+      start: "top 80%",
+      toggleActions: "play none none none"
+    }
+  });
+
+  tl.to(slide, {
+    scaleX: 1,
+    duration: 0.2,
+    ease: "power4.out"
+  })
+  .to(slide, {
+    scaleY: 1,
+    duration: 0.2,
+    ease: "power4.out"
+  })
+  .to(slide, {
+    backgroundColor: "transparent",
+    duration: 0.1
+  });
+});
+
+
+/* text animation2 */
+const rouletteChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+document.querySelectorAll(".event-wrap__content").forEach((el) => {
+  const targetText = el.innerText;
+  
+  gsap.set(el, { visibility: "hidden" });
+
+  el.innerText = targetText.replace(/./g, () => 
+    rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length))
+  );
+
+  let obj = { value: 0 };
+
+  gsap.to(obj, {
+    value: targetText.length,
+    duration: 0.8,
+    ease: "none",
+    scrollTrigger: {
+      trigger: el,
+      start: "top 85%", 
+      toggleActions: "play none none none",
+      onEnter: () => gsap.set(el, { visibility: "visible" })
+    },
+    onUpdate: () => {
+      let result = "";
+      const progress = Math.floor(obj.value);
+      for (let i = 0; i < targetText.length; i++) {
+        if (i < progress) {
+          result += targetText[i];
+        } else {
+          result += rouletteChars.charAt(Math.floor(Math.random() * rouletteChars.length));
+        }
+      }
+      el.innerText = result;
+    },
+    onComplete: () => {
+      el.innerText = targetText;
+    }
+  });
+});
+
+
+/* parallax */
+const parallaxItems = [
+  { selector: ".js-parallax01", y: -30, rotate: 45},
+  { selector: ".js-parallax02", y: -70, rotate: -45}
+];
+
+parallaxItems.forEach((item) => {
+  const elements = document.querySelectorAll(item.selector);
+
+  elements.forEach((el) => {
+    gsap.fromTo(el, 
+      { yPercent: 0,
+        rotation: 0
+       }, 
+      { 
+        yPercent: item.y, 
+        rotation: item.rotate,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "top bottom", 
+          end: "bottom top",   
+          scrub: 2
+        }
+      }
+    );
   });
 });
