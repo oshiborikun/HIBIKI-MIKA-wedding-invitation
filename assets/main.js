@@ -83,13 +83,13 @@ function leafHotJump() {
   heart.style.bottom = '60px';
 
   setTimeout(() => {
-    hibiki.style.transition = 'transform 0.15s cubic-bezier(0.8, 0, 1, 1)';
+    hibiki.style.transition = 'transform 0.5s cubic-bezier(0.8, 0, 1, 1)';
     hibiki.style.transform = 'translateY(0)';
 
-    block.style.transition = 'transform 0.15s ease-in';
+    block.style.transition = 'transform 0.5s ease-in';
     block.style.transform = 'translateY(0)';
 
-    heart.style.transition = 'bottom 0.35s ease-out';
+    heart.style.transition = 'bottom 0.5s ease-out';
     heart.style.bottom = '90px';
   }, 110);
 
