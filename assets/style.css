@@ -221,6 +221,11 @@ span{
     width: 100%;
 }
 
+.hibiki-jump img{
+    width:100%;
+    height:auto;
+    }
+
 .fv-wrap__img--ground{
   width: 100%;
   margin: 0 auto;
