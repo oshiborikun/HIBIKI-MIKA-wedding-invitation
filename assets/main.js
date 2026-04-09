@@ -72,14 +72,14 @@ function leafHotJump() {
   hibiki.style.transform = 'translateY(-35px)';
 
   block.src = sukaBlockSrc;
-  block.style.transition = 'transform 0.08s ease-out';
+  block.style.transition = 'transform 0.1s ease-out';
   block.style.transform = 'translateY(-18px)';
 
   heart.classList.remove('is-spinning');
   void heart.offsetWidth;
   heart.classList.add('is-spinning');
   heart.style.opacity = '1';
-  heart.style.transition = 'bottom 0.15s cubic-bezier(0.1, 0.9, 0.2, 1)';
+  heart.style.transition = 'bottom 0.5s cubic-bezier(0.1, 0.9, 0.2, 1)';
   heart.style.bottom = '60px';
 
   setTimeout(() => {
