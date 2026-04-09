@@ -210,46 +210,44 @@ span{
   line-height: 1em;
 }
 
-/* --- Block Area (Heart & Block) --- */
-.fv-wrap__img--block {
+.fv-wrap__img--block{
   margin-top: 30px;
   display: grid;
+  gap: 10px;
   justify-content: center;
   position: relative;
 }
 
-/* ハートの初期設定：ブロックの裏に隠す */
-.site-img__heart {
+.site-img__heart{
   width: 48px;
-  position: absolute;
-  /* ブロックの中央に配置 */
-  bottom: 20px; 
-  left: 50%;
-  transform: translateX(-50%); 
+  margin: 0 auto;
   opacity: 0;
-  z-index: 1; /* ブロック(z-index: 2)より後ろ */
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  z-index: 1;
   pointer-events: none;
-  will-change: transform, opacity;
+  transform: rotateY(0deg);
 }
 
-/* ハートの回転アニメーション */
 @keyframes heartJumpRotate {
-  0% { transform: translateX(-50%) rotateY(0deg); }
-  100% { transform: translateX(-50%) rotateY(1800deg); } 
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(1800deg); } 
 }
 
 .is-spinning {
   animation: heartJumpRotate 0.6s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-.site-img__block {
+.site-img__block{
   width: 64px;
   position: relative;
-  z-index: 2; /* ハートより前面 */
+  z-index: 2;
+  transition: transform 0.2s ease-out;
 }
 
-/* --- Human Area (Hibiki & Mika) --- */
-.fv-wrap__img--human {
+.fv-wrap__img--human{
   margin-top: 30px;
   display: flex;
   gap: 5px;
@@ -261,24 +259,17 @@ span{
   z-index: 20;
 }
 
-.site-img__hibiki {
+.site-img__hibiki{
   width: 90px;
   height: auto;
+  will-change: transform, width;
   flex-shrink: 0;
-  will-change: transform;
-  /* transitionがあるとGSAPと喧嘩するため削除 */
-  transition: none !important; 
 }
 
-.fv-wrap__img--human > * {
-  backface-visibility: hidden;
-}
-
-.site-img__mika {
+.site-img__mika{
   width: 110px;
   flex-shrink: 0;
 }
-
 
 .fv-wrap__img--ground{
   width: 100%;
