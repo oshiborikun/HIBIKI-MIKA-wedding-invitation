@@ -35,48 +35,64 @@ window.addEventListener('load', () => {
   gsap.delayedCall(5, hideLoader); // 最大5秒で強制非表示
 
 
-  // --- 2. Hibiki Jump (GSAP Timeline Loop) ---
-  const hibiki = document.querySelector('.site-img__hibiki');
-  const heart = document.querySelector('.site-img__heart');
-  const block = document.querySelector('.site-img__block');
+  
+// --- 2. Hibiki Jump (GSAP Timeline Loop) ---
+const hibiki = document.querySelector('.site-img__hibiki');
+const heart = document.querySelector('.site-img__heart');
+const block = document.querySelector('.site-img__block');
 
-  const normalSrc = './assets/img/hibiki_dot.png';
-  const jumpSrc = './assets/img/hibiki_jump.png';
-  const mBlockSrc = './assets/img/m_block.png';
-  const sukaBlockSrc = './assets/img/suka_block.png';
+const normalSrc = './assets/img/hibiki_dot.png';
+const jumpSrc = './assets/img/hibiki_jump.png';
+const mBlockSrc = './assets/img/m_block.png';
+const sukaBlockSrc = './assets/img/suka_block.png';
 
-  // タイムライン定義：絶対にズレない無限ループ
-  const jumpTl = gsap.timeline({ 
-    repeat: -1, 
-    repeatDelay: 2.5,
-    defaults: { ease: "power2.out" } 
-  });
+// タイムライン設定
+const jumpTl = gsap.timeline({ 
+  repeat: -1, 
+  repeatDelay: 2.5 
+});
 
-  jumpTl
-    // [上昇開始] 画像切り替えと同時に跳ねる
-    .set(hibiki, { attr: { src: jumpSrc }, width: '96px', marginRight: '-6px' })
-    .set(block, { attr: { src: sukaBlockSrc } })
-    .set(heart, { opacity: 1 })
-    .add(() => {
-      heart.classList.remove('is-spinning');
-      void heart.offsetWidth;
-      heart.classList.add('is-spinning');
-    })
-    // 物理的な移動（yのマイナス値を大きくして高さを出す）
-    .to(hibiki, { y: -65, duration: 0.15 }, 0)
-    .to(block, { y: -25, duration: 0.1 }, 0)
-    .to(heart, { y: -80, duration: 0.2 }, 0)
+jumpTl
+  // 1. [ジャンプ上昇] 0.0s 〜 0.2s
+  .set(heart, { opacity: 0, y: 0, rotationY: 0 }) // 初期化
+  .set(block, { attr: { src: mBlockSrc }, y: 0 }) // 初期化
+  .to(hibiki, { 
+    attr: { src: jumpSrc }, 
+    width: '96px', 
+    marginRight: '-6px',
+    y: -70, 
+    duration: 0.2, 
+    ease: "power2.out" 
+  })
 
-    // [落下] 
-    .to(hibiki, { y: 0, duration: 0.18, ease: "power2.in" }, "+=0.02")
-    .to(block, { y: 0, duration: 0.18, ease: "power2.in" }, "<")
-    .to(heart, { y: -130, duration: 0.45 }, "<") // ハートはそのまま空へ
+  // 2. [衝撃：ブロックを叩く] 0.2s
+  .set(block, { attr: { src: sukaBlockSrc } }, 0.2)
+  .to(block, { y: -20, duration: 0.05, yoyo: true, repeat: 1 }, 0.2)
+  
+  // 3. [ハート出現 & 回転] 0.2s 〜
+  .set(heart, { opacity: 1 }, 0.2)
+  .add(() => {
+    heart.classList.remove('is-spinning');
+    void heart.offsetWidth; // 強制リフロー
+    heart.classList.add('is-spinning');
+  }, 0.2)
+  .to(heart, { y: -160, duration: 0.6, ease: "power1.out" }, 0.2)
+  .to(heart, { opacity: 0, duration: 0.2 }, 0.5) // 0.5s付近で消える
 
-    // [着地後]
-    .set(hibiki, { attr: { src: normalSrc }, width: '90px', marginRight: '0' })
-    .to(heart, { opacity: 0, duration: 0.2 }, "+=0.3")
-    .set(block, { attr: { src: mBlockSrc } })
-    .set(heart, { y: 0 }); // 次のループ用に座標リセット
+  // 4. [着地] 0.2s 〜 0.5s (トータル0.5sのジャンプ)
+  .to(hibiki, { 
+    y: 0, 
+    duration: 0.3, 
+    ease: "power2.in" 
+  }, 0.2)
+  .set(hibiki, { 
+    attr: { src: normalSrc }, 
+    width: '90px', 
+    marginRight: '0' 
+  }, 0.5)
+
+  // 5. [ブロック復帰] ハートが消えるタイミングで戻す
+  .set(block, { attr: { src: mBlockSrc } }, 0.7);
 
 
   // --- 3. Text Animation (ScrollTrigger) ---
