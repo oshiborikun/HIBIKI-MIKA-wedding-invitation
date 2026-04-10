@@ -141,6 +141,7 @@ span{
   display: grid;
   align-content: space-between;
   grid-template-rows: auto auto;
+  position: relative;
 }
 
 .fv-wrap__img{
@@ -210,20 +211,17 @@ span{
   line-height: 1em;
 }
 
-.fv-wrap__img--block{
+.fv-container__inner--bottom{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 3%;
+}
+
+.fv-container__inner--bottom img{
   width: 80%;
-    display: flex;
-    align-items: flex-end;
 }
-
-.hibiki-jump{
-    width: 100%;
-}
-
-.hibiki-jump img{
-    width:100%;
-    height:auto;
-    }
 
 .fv-wrap__img--ground{
   width: 100%;
