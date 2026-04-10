@@ -216,7 +216,7 @@ span{
   display: flex;
   justify-content: center;
   position: absolute;
-  bottom: 2%;
+  bottom: 2.5%;
 }
 
 .fv-container__inner--bottom img{
