@@ -211,14 +211,14 @@ span{
 }
 
 .fv-wrap__img--block{
-  margin-top: 30px;
-  display:flex;
-  justify-content: center;
-  position: relative;
+  position: absolute;
+ left: 50%;
+ bottom:5%;
+ transform: translateX(-50%);
 }
 
 .hibiki-jump{
-    width: 100%;
+    width: 80%;
 }
 
 .hibiki-jump img{
