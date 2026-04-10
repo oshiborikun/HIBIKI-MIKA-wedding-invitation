@@ -212,6 +212,8 @@ span{
 
 .fv-wrap__img--block{
   width: 80%;
+    display: flex;
+    align-items: flex-end;
 }
 
 .hibiki-jump{
