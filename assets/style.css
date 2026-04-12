@@ -409,9 +409,9 @@ span{
 
 @keyframes fade-loop {
   0%   { opacity: 0; }
-  10%  { opacity: 1; } 
-  33%  { opacity: 1; } 
-  43%  { opacity: 0; } 
+  4%  { opacity: 1; } 
+  16%  { opacity: 1; } 
+  20%  { opacity: 0; } 
   100% { opacity: 0; }
 }
 
