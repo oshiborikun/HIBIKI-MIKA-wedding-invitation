@@ -395,6 +395,18 @@ span{
   animation-delay: 8s; 
 }
 
+.flame-gba__slide-item:nth-child(4) { 
+  animation-delay: 12s; 
+}
+
+.flame-gba__slide-item:nth-child(5) { 
+  animation-delay: 16s; 
+}
+
+.flame-gba__slide-item:nth-child(6) { 
+  animation-delay: 24s; 
+}
+
 @keyframes fade-loop {
   0%   { opacity: 0; }
   10%  { opacity: 1; } 
