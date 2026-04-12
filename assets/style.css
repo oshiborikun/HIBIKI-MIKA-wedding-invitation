@@ -372,7 +372,7 @@ span{
   height: 100%;
   aspect-ratio: 1;
   opacity: 0; 
-  animation: fade-loop 12s infinite;
+  animation: fade-loop 24s infinite;
 }
 
 .flame-gba__slide-item img {
@@ -404,7 +404,7 @@ span{
 }
 
 .flame-gba__slide-item:nth-child(6) { 
-  animation-delay: 24s; 
+  animation-delay: 20s; 
 }
 
 @keyframes fade-loop {
