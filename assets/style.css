@@ -372,7 +372,7 @@ span{
   height: 100%;
   aspect-ratio: 1;
   opacity: 0; 
-  animation: fade-loop 12s infinite;
+  animation: fade-loop 64s infinite;
 }
 
 .flame-gba__slide-item img {
